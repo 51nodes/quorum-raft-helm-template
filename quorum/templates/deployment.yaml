@@ -1,0 +1,125 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quorumnode-deployment
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      name: quorumnode-deployment
+  template:
+    metadata:
+      name: quorumnode-deployment
+      labels:
+        app: quorum
+        tier: backend
+        name: quorumnode-deployment
+    spec:
+      securityContext:
+      initContainers:
+      containers:
+        - name: quorum
+          image: quorumengineering/quorum:20.10.0
+          command: ["sh"]
+          args:
+            - -c
+            - |
+
+              DDIR=/qdata/dd
+
+              mkdir -p $${DDIR}/keystore
+              mkdir -p $${DDIR}/geth
+
+              cp /3nodes/raft/nodekey1 $${DDIR}/geth/nodekey
+              cp /3nodes/raft/nodekey2 $${DDIR}/geth/nodekey
+              cp /3nodes/raft/nodekey3 $${DDIR}/geth/nodekey
+
+              cp /3nodes/keys/key1 $${DDIR}/keystore/
+              cp /3nodes/keys/key2 $${DDIR}/keystore/
+              cp /3nodes/keys/key3 $${DDIR}/keystore/
+              cp /3nodes/keys/key4 $${DDIR}/keystore/
+              cp /3nodes/keys/key5 $${DDIR}/keystore/            
+
+              cat /3nodes/permissioned-nodes.json | sed 's/^\(.*\)@.*\?\(.*\)raftport=5040\([0-9]\)\(.*\)$$/\1@172.16.239.1\3:21000?discport=0\&raftport=50400\4/g' > $${DDIR}/static-nodes.json
+              cp $${DDIR}/static-nodes.json $${DDIR}/permissioned-nodes.json
+              cat $${DDIR}/static-nodes.json
+
+              GENESIS_FILE="/3nodes/genesis.json"
+              NETWORK_ID=$$(cat $${GENESIS_FILE} | grep chainId | awk -F " " '{print $$2}' | awk -F "," '{print $$1}')
+              GETH_ARGS_raft="--raft --raftport 50400"
+              geth --datadir $${DDIR} init $${GENESIS_FILE}
+              geth \
+                --allow-insecure-unlock \
+                --datadir $${DDIR} \
+                --permissioned \
+                --nodiscover \
+                --verbosity 5 \
+                --networkid $${NETWORK_ID} \
+                --rpc \
+                --rpccorsdomain "*" \
+                --rpcvhosts "*" \
+                --rpcaddr 0.0.0.0 \
+                --rpcport 8545 \
+                --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,raft \
+                --port 21000 \
+                --ws \
+                --wsaddr 0.0.0.0 \
+                --wsport 8546 \
+                --wsapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,raft \
+                --wsorigins "*" \
+                --unlock 0 \
+                --password /3nodes/passwords.txt \
+                ${QUORUM_GETH_ARGS:-} $${GETH_ARGS_raft}
+          env:
+            - name: PRIVATE_CONFIG
+              value: ignore
+            - name: GENESIS
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: genesis.json
+          volumeMounts:
+            - name: config-persistent-storage
+              mountPath: /3nodes/
+            - name: nodekey-persistent-storage
+              mountPath: /3nodes/raft/
+            - name: key-config-persistent-storage
+              mountPath: /3nodes/keys/
+      volumes:
+        - name: config-persistent-storage
+          configMap:
+            name: config
+            items:
+              - key: genesis.json
+                path: genesis.json
+              - key: permissioned-nodes.json
+                path: permissioned-nodes.json
+              - key: passwords.txt
+                path: passwords.txt
+        - name: nodekey-persistent-storage
+          configMap:
+            name: nodekey
+            items:
+              - key: nodekey1
+                path: nodekey1
+              - key: nodekey2
+                path: nodekey2
+              - key: nodekey3
+                path: nodekey3
+        - name: key-config-persistent-storage
+          configMap:
+            name: key-config
+            items:
+              - key: key1
+                path: key1
+              - key: key2
+                path: key2
+              - key: key3
+                path: key3
+              - key: key4
+                path: key4
+              - key: key5
+                path: key5

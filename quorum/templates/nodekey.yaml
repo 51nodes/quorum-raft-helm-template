@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nodekey
+  labels:
+    app: quorum
+    name: nodekey
+data:
+  nodekey1: 
+    1be3b50b31734be48452c29d714941ba165ef0cbf3ccea8ca16c45e3d8d45fb0
+  nodekey2: 
+    9bdd6a2e7cc1ca4a4019029df3834d2633ea6e14034d6dcc3b944396fe13a08b  
+  nodekey3: 
+    722f11686b2277dcbd72713d8a3c81c666b585c337d47f503c3c1f3c17cf001d   
