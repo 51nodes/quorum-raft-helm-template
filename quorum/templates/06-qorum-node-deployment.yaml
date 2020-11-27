@@ -1,0 +1,187 @@
+{{ $scope := . }}
+{{ range $k, $v := .Values.nodes }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quorum-node{{ $k | substr 4 5 }}-deployment
+  
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      name: quorum-node{{ $k | substr 4 5 }}-deployment
+  template:
+    metadata:
+      name:  quorum-node{{ $k | substr 4 5 }}-deployment
+      labels:
+        app: quorum
+        tier: backend
+        name: quorum-node{{ $k | substr 4 5 }}-deployment
+    spec:
+      securityContext:
+      initContainers:
+      - name: quorum-genesis-init-container
+        image: quorumengineering/quorum:20.10.0
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "if [ ! -f $QUORUM_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $QUORUM_DATA_DIR init /etc/quorum/genesis/genesis-geth.json;
+              date > $QUORUM_DATA_DIR/genesis_created;
+           fi;
+          "
+        # ENV  
+        env:
+          - name: QUORUM_DATA_DIR
+            value: /etc/quorum/qdata/dd
+          - name: QHOME
+            value: /etc/quorum/qdata
+        volumeMounts:
+        - name: quorum-persistent-storage
+          mountPath:  /etc/quorum/qdata
+          subPath: quorum-node{{ $k | substr 4 5 }}
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/quorum/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+      containers:
+      - name: quorum
+        image: quorumengineering/quorum:20.10.0
+        readinessProbe:
+          exec:
+            command:
+              - ls
+              - $(QHOME)/dd/geth.ipc
+          initialDelaySeconds: 20
+          periodSeconds: 3
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "
+           apk add curl;
+           apk add jq;
+
+           ln -s $QUORUM_HOME/permission-nodes/permissioned-nodes.json $QUORUM_DATA_DIR/permissioned-nodes.json;
+           ln -s $QUORUM_HOME/permission-nodes/permissioned-nodes.json $QUORUM_DATA_DIR/static-nodes.json;
+           cat /etc/quorum/genesis/genesis-geth.json;
+           chmod 644 $QUORUM_DATA_DIR/keystore/key;
+           touch $QUORUM_DATA_DIR/password.txt;
+           RPC_APIS=admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum
+           args=\" --gcmode archive --raft  --raftport {{ $scope.Values.geth.raftPort }} --raftdnsenable \";
+           RPC_APIS=\"$RPC_APIS,raft\";
+           args=\"$args --allow-insecure-unlock \";
+           /usr/local/bin/geth \
+           --datadir $QUORUM_DATA_DIR \
+           $args \
+           {{ $scope.Values.geth.gethParams }}
+           --verbosity {{ $scope.Values.geth.verbosity }} \
+           --networkid {{ $scope.Values.geth.networkId }} 
+           {{- if eq $scope.Values.geth.rpc true }} \
+           --rpc \
+           --rpcaddr 0.0.0.0 \
+           --rpcport 8545 \
+           --rpcapi $RPC_APIS
+           {{- end -}} 
+           {{- if eq $scope.Values.geth.ws true }} \
+           --ws \
+           --wsaddr 0.0.0.0 \
+           --wsport 8546 \
+           --wsapi $RPC_APIS \
+           {{- end }} 
+           --port {{ $scope.Values.geth.port }} \
+           --password $QUORUM_DATA_DIR/password.txt 2>&1 | tee -a /etc/quorum/qdata/logs/quorum.log;"
+        ports:
+          {{- if eq $scope.Values.geth.rpc true }}
+          - containerPort: 8545
+          {{- end }}
+          {{- if eq $scope.Values.geth.ws true }}
+          - containerPort: 8546
+          {{- end }}
+          - containerPort: {{ $scope.Values.geth.raftPort }}
+          - containerPort: {{ $scope.Values.geth.port }}
+        # ENV
+        env:
+        - name: PRIVATE_CONFIG
+          value: ignore
+        - name: QUORUM_DATA_DIR
+          value: /etc/quorum/qdata/dd
+        - name: QUORUM_HOME
+          value: /etc/quorum/qdata
+        - name: QHOME
+          value: /etc/quorum/qdata
+        - name: THIS_NODE_ID
+          value: quorum-node{{ $k | substr 4 5 }}
+        volumeMounts:
+        - name: quorum-persistent-storage
+          mountPath: /etc/quorum/qdata
+          subPath: quorum-node{{ $k | substr 4 5 }}
+        - name: quorum-persistent-storage
+          mountPath: /etc/quorum/qdata/tm
+          subPath: quorum-node{{ $k | substr 4 5 }}-tm
+        - name: quorum-persistent-storage
+          mountPath: /etc/quorum/qdata/logs
+          subPath: quorum-node{{ $k | substr 4 5 }}-logs
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/quorum/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: quorum-key-config-persistent-storage
+          mountPath: /etc/quorum/qdata/dd/keystore/key
+          subPath: key
+        - name: quorum-nodekey
+          mountPath: /etc/quorum/qdata/dd/geth/nodekey
+          subPath: nodekey
+        - name: quorum-enode
+          mountPath: /etc/quorum/qdata/dd/geth/enode
+          subPath: enode
+        - name: quorum-permissioned-config
+          mountPath: /etc/quorum/qdata/permission-nodes
+        - name: geth-helpers
+          mountPath: /geth-helpers
+      volumes:
+      - name: quorum-permissioned-config
+        configMap:
+          name: quorum-permissioned-config
+          items:
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+      - name: genesis-config-persistent-storage
+        configMap:
+          name: genesis-config
+          items:
+          - key: genesis-geth.json
+            path: genesis-geth.json
+      - name: quorum-key-config-persistent-storage
+        configMap:
+          name: quorum-node{{ $k | substr 4 5 }}-account-key-config
+          items:
+          - key: key
+            path: key
+      - name: quorum-nodekey
+        configMap:
+          name: quorum-node{{ $k | substr 4 5 }}-nodekey-config
+          items:
+          - key: nodekey
+            path: nodekey
+      - name: quorum-enode
+        configMap:
+          name: quorum-node{{ $k | substr 4 5 }}-enode-config
+          items:
+            - key: enode
+              path: enode
+      - name: geth-helpers
+        configMap:
+          name: geth-helpers
+          items:
+            - key: geth-attach.sh
+              path: geth-attach.sh
+            - key: geth-exec.sh
+              path: geth-exec.sh
+          defaultMode: 0777
+      # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
+      - name: quorum-persistent-storage
+        persistentVolumeClaim:
+          claimName: quorum-node{{ $k | substr 4 5 }}-pvc
+---
+{{ end }}
+

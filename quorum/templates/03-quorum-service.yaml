@@ -1,0 +1,43 @@
+{{ $scope := . }}
+{{ range $k, $v := .Values.nodes }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: quorum-node{{ $k | substr 4 5}}
+  labels:
+    app: quorum
+    tier: backend
+    name: quorum-node{{ $k | substr 4 5}}
+spec:
+  selector:
+    app: quorum
+    tier: backend
+    name: quorum-node{{ $k | substr 4 5}}-deployment
+  # NodePort | ClusterIP | Loadbalancer
+  type: NodePort
+  ports:
+    # default 8545
+    {{- if eq $scope.Values.geth.rpc true }}
+    - name: rpc-listener
+      protocol: TCP
+      port: 8545
+      targetPort: 8545
+    {{- end }}
+    {{- if eq $scope.Values.geth.ws true }}
+    - name: wsport
+      protocol: TCP
+      port: 8546
+      targetPort: 8546
+    {{- end }}
+    - name: quorum-listener
+      protocol: TCP
+      port: {{ $scope.Values.geth.port }}
+      targetPort: {{ $scope.Values.geth.port }}
+    - name: raft
+      protocol: TCP
+      port: {{ $scope.Values.geth.raftPort }}
+      targetPort: {{ $scope.Values.geth.raftPort }}
+---
+{{ end }}
+
+
