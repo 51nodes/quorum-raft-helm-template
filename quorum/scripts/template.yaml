@@ -1,0 +1,5 @@
+${node_name}:  
+  nodekey: ${nodekey}
+  enode: ${enode}
+  key: |-
+    ${key}

@@ -25,7 +25,7 @@ geth:
   ws: true 
   port: 30303
   raftPort: 50401
-  verbosity: 9
+  verbosity: 3
   gethParams: 
     --permissioned \
     --nodiscover \
