@@ -62,7 +62,7 @@ After saving your changes to the [values.yaml](quorum/values.yaml) file run foll
 helm upgrade nnodes quorum -n quorum-network
 ```
 
-Lastly use [Accessing a Specific Node](accessing-a-specific-node) to get a shell to one of the inital nodes and access geth. Then run following command to add the new node to the cluster: 
+Lastly use [Accessing a Specific Node](#accessing-a-specific-node) to get a shell to one of the inital nodes and access geth. Then run following command to add the new node to the cluster: 
 ```
 raft.addPeer(<enode>)
 ```
