@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Enter the number of to be removed (e.g. 1):"
+echo "Enter the number of the node to be removed (e.g. 1 for node1):"
 read NODE_REMOVE
 
 NODES_LENGTH=$(yq eval '.nodes | length' ../values.yaml)

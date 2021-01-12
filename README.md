@@ -41,7 +41,7 @@ helm uninstall nnodes quorum -n quorum-network
 To use the following scripts you need to have [yq](https://github.com/mikefarah/yq) and [jq](https://stedolan.github.io/jq/) installed on your machine.
 
 - Add `one or multiple` nodes with the [addNodes](quorum/scripts/addNodes.sh) script.  
-- Remove one `specific` node with the [removeNode](quorum/scripts/removeNodes.sh) script.
+- Remove one `specific` node with the [removeNode](quorum/scripts/removeNode.sh) script.
 
 ## Adding & Removing Nodes Manually  
 
@@ -56,13 +56,13 @@ node<n>:
       <key>
 ```
 
-After saving your changes to the [values.yaml](quorum/values.yaml) file run following command to update the kubernetes deplyoment. 
+After saving your changes to the [values.yaml](quorum/values.yaml) file run following command to update the kubernetes deployment. 
 
 ```
 helm upgrade nnodes quorum -n quorum-network
 ```
 
-Lastly use [Accessing a Specific Node](Accessing-a-Specific-Node) to get a shell to one of the inital nodes an run following command to add the new node to the cluster: 
+Lastly use [Accessing a Specific Node](accessing-a-specific-node) to get a shell to one of the inital nodes and access geth. Then run following command to add the new node to the cluster: 
 ```
 raft.addPeer(<enode>)
 ```
@@ -70,8 +70,6 @@ raft.addPeer(<enode>)
 ### Remove Node
 
 To remove nodes simply delete the according yaml value and run `helm upgrade` to confirm the changes. 
-
-
 
 ## Accessing the Network
 The configuration exposes an RPC endpoint for every Quorum node at `<cluster-ip>:<rpcPort>`. To get the endpoint URL you can run the following commands:
