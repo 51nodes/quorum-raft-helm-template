@@ -42,14 +42,14 @@ for((i=$NODES_LENGTH;i<$NODES_DESIRED;i++)) do
   chmod +r temp/final.yaml
 
   cat temp/final.yaml | sed 's/^/  /' >> ../values.yaml
+
+  echo "Updating network"
+  cd ../.. && helm upgrade nnodes quorum -n quorum-network && cd quorum/scripts/
+
+  echo "Adding peer to raft cluster"
+  PORT=$(yq eval '.geth.port' ../values.yaml)
+  RAFTPORT=$(yq eval '.geth.raftPort' ../values.yaml)
+  ENODE_ADDRESS="enode://$ENODE@quorum-$NODE_NAME:$PORT?discport=0&raftport=$RAFTPORT"
+  echo $ENODE_ADDRESS
+  kubectl exec -n quorum-network $POD -- geth --exec "raft.addPeer('$ENODE_ADDRESS')" attach ipc:etc/quorum/qdata/dd/geth.ipc
 done
-
-echo "Updating network"
-cd ../.. && helm upgrade nnodes quorum -n quorum-network && cd quorum/scripts/
-
-echo "Adding peer to raft cluster"
-PORT=$(yq eval '.geth.port' ../values.yaml)
-RAFTPORT=$(yq eval '.geth.raftPort' ../values.yaml)
-ENODE_ADDRESS="enode://$ENODE@quorum-$NODE_NAME:$PORT?discport=0&raftport=$RAFTPORT"
-echo $ENODE_ADDRESS
-kubectl exec -n quorum-network $POD -- geth --exec "raft.addPeer('$ENODE_ADDRESS')" attach ipc:etc/quorum/qdata/dd/geth.ipc

@@ -40,8 +40,8 @@ helm uninstall nnodes quorum -n quorum-network
 ## Adding & Removing Nodes Dynamically (Running Network)
 To use the following scripts you need to have [yq](https://github.com/mikefarah/yq) and [jq](https://stedolan.github.io/jq/) installed on your machine.
 
-- Add `one or multiple` nodes with the [addNodes](quorum/scripts/addNodes.sh) script.  
-- Remove one `specific` node with the [removeNode](quorum/scripts/removeNode.sh) script.
+- Add a node with the [addNode](quorum/scripts/addNode.sh) script.  
+- Remove a node with the [removeNode](quorum/scripts/removeNode.sh) script.
 
 ## Adding & Removing Nodes Manually  
 
