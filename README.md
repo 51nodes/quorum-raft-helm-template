@@ -33,45 +33,30 @@ kubectl create ns quorum-network
 # Deploy template to namespace
 helm install nnodes quorum -n quorum-network
 
+# List running nodes 
+kubectl -n quorum-network get pods
+
 # Remove template from namespace
 helm uninstall nnodes quorum -n quorum-network
 ```
 
-## Adding & Removing Nodes Dynamically (Running Network)
-To use the following scripts you need to have [yq](https://github.com/mikefarah/yq) and [jq](https://stedolan.github.io/jq/) installed on your machine.
+## Adding & Removing Nodes
+After deploying the initial cluster use following scripts to add or remove `specific` or `multiple` nodes dynamically. 
 
-- Add a node with the [addNode](quorum/scripts/addNode.sh) script.  
-- Remove a node with the [removeNode](quorum/scripts/removeNode.sh) script.
+Note: To use these scripts you need to have [yq](https://github.com/mikefarah/yq) installed on your machine.
 
-## Adding & Removing Nodes Manually  
+### Multiple
 
-### Add Node
-To add nodes `manually`, generate your own enode and account key material and edit the [values.yaml](quorum/values.yaml) file in the [root](quorum) directory.
+- Upgrade the cluster to a desired amount of nodes - [addNodes.sh](quorum/scripts/addNodes.sh)
 
-```
-node<n>: 
-    nodekey: <nodekey>
-    enode: <enode>
-    key: |- 
-      <key>
-```
+### Specific
+- Generate bootnode and geth account keys for an additonal node - [keygen.sh](quorum/scripts/keygen.sh)
+- Add a node by providing bootnode and geth account keys - [addNode.sh](quorum/scripts/addNode.sh)  
+- Remove a node by providing the enode id - [removeNode.sh](quorum/scripts/removeNode.sh)
 
-After saving your changes to the [values.yaml](quorum/values.yaml) file run following command to update the kubernetes deployment. 
 
-```
-helm upgrade nnodes quorum -n quorum-network
-```
 
-Lastly use [Accessing a Specific Node](#accessing-a-specific-node) to get a shell to one of the inital nodes and access geth. Then run following command to add the new node to the cluster: 
-```
-raft.addPeer(<enode>)
-```
-
-### Remove Node
-
-To remove nodes simply delete the according yaml value and run `helm upgrade` to confirm the changes. 
-
-## Accessing the Network
+## Accessing Nodes
 The configuration exposes an RPC endpoint for every Quorum node at `<cluster-ip>:<rpcPort>`. To get the endpoint URL you can run the following commands:
 ```
 #Get the cluster-ip
@@ -98,9 +83,6 @@ kubectl exec -n quorum-network <pod> -i -t -- /bin/sh
 
 ## Other useful Commands
 ```
-# Get list of running nodes 
-kubectl -n quorum-network get pods
-
 # Get logs of running nodes 
 kubectl -n quorum-network logs <pod>
 ```

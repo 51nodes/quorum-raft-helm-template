@@ -1,6 +1,9 @@
 #!/bin/sh
 
-echo "Enter the amount of overall desired nodes:"
+green=`tput setaf 2`
+reset=`tput sgr0`
+
+echo "${green}Enter the amount of overall desired nodes:$reset"
 read NODES_DESIRED
 
 NODES_LENGTH=$(yq eval '.nodes | length' ../values.yaml)
@@ -10,7 +13,8 @@ POD=$(kubectl get pod -l app=quorum -n quorum-network -o jsonpath="{.items[0].me
 
 for((i=$NODES_LENGTH;i<$NODES_DESIRED;i++)) do
   NODE_NAME="node$((i+1))"
-  echo "Adding $NODE_NAME to the network"
+
+  echo "${green}Adding $NODE_NAME to the network$reset"
 
   # generate new enode
   kubectl exec -n quorum-network $POD -- bootnode -genkey $NODE_NAME.key
@@ -43,10 +47,10 @@ for((i=$NODES_LENGTH;i<$NODES_DESIRED;i++)) do
 
   cat temp/final.yaml | sed 's/^/  /' >> ../values.yaml
 
-  echo "Updating network"
+  echo "${green}Updating network$reset"
   cd ../.. && helm upgrade nnodes quorum -n quorum-network && cd quorum/scripts/
 
-  echo "Adding peer to raft cluster"
+  echo "${green}Adding peer to raft cluster$reset"
   PORT=$(yq eval '.geth.port' ../values.yaml)
   RAFTPORT=$(yq eval '.geth.raftPort' ../values.yaml)
   ENODE_ADDRESS="enode://$ENODE@quorum-$NODE_NAME:$PORT?discport=0&raftport=$RAFTPORT"
