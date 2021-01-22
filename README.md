@@ -55,7 +55,7 @@ After deploying the initial cluster use following scripts to add or remove `spec
 - Add a node by providing bootnode and geth account keys - [addNode.sh](quorum/scripts/addNode.sh)  
 - Remove a node by providing the nodes id - [removeNode.sh](quorum/scripts/removeNode.sh)
 
-## Inspect Node $ Cluster State
+## Inspect Node & Cluster State
 ```
 #Access container
 kubectl exec -n quorum-network <pod> -i -t -- /bin/sh
