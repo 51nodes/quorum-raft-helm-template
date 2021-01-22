@@ -24,7 +24,7 @@ geth:
     --rpcvhosts '*' \
 ```
 
-## Deploy & Remove
+## Deploy, Inspect & Remove
 Use the templates in this repository to deploy a quorum network with n nodes. It might take some time for the nodes to be up and in sync.
 ```
 # Create namespace
@@ -36,25 +36,37 @@ helm install nnodes quorum -n quorum-network
 # List running nodes 
 kubectl -n quorum-network get pods
 
+# Inspect raft cluster
+kubectl exec -n quorum-network <pod> -- geth --exec "raft.cluster" attach ipc:etc/quorum/qdata/dd/geth.ipc
+
 # Remove template from namespace
 helm uninstall nnodes quorum -n quorum-network
 ```
 
 ## Adding & Removing Nodes
-After deploying the initial cluster use following scripts to add or remove `specific` or `multiple` nodes dynamically. 
+After deploying the initial cluster use following scripts to add or remove `specific` or `multiple` nodes dynamically. Keep in mind the cluster has to be running and the initial nodes have to be in snyc to use these scripts.
 
 Note: To use these scripts you need to have [yq](https://github.com/mikefarah/yq) installed on your machine.
 
 ### Multiple
-
-- Upgrade the cluster to a desired amount of nodes - [addNodes.sh](quorum/scripts/addNodes.sh)
+- Upgrade the cluster to a desired amount of nodes - [addNodes.sh](quorum/scripts/addNodes.sh). Please only add a maximum of 3 nodes at a time using this script, if the new nodes are in sync again you can safely reuse this script to add more nodes. Otherwise the raftID of a new node could get corrupted. 
 
 ### Specific
 - Generate bootnode and geth account keys for an additonal node - [keygen.sh](quorum/scripts/keygen.sh)
 - Add a node by providing bootnode and geth account keys - [addNode.sh](quorum/scripts/addNode.sh)  
-- Remove a node by providing the enode id - [removeNode.sh](quorum/scripts/removeNode.sh)
+- Remove a node by providing the nodes id - [removeNode.sh](quorum/scripts/removeNode.sh)
 
+## Inspect Nodes
+```
+#Access container
+kubectl exec -n quorum-network <pod> -i -t -- /bin/sh
 
+    # Then run the following command to access geth running in the container 
+    geth attach ./etc/quorum/qdata/dd/geth.ipc
+
+    # After accessing geth run the following command to inspect the network status
+    raft.cluster
+```
 
 ## Accessing Nodes
 The configuration exposes an RPC endpoint for every Quorum node at `<cluster-ip>:<rpcPort>`. To get the endpoint URL you can run the following commands:
@@ -67,18 +79,6 @@ kubectl -n quorum-network get svc
 
 #If you use minikube you can also run to get the full endpoint url. The first value of the resulting output should be the RPC endpoint. 
 minikube -n quorum-network service quorum-node1 --url
-```
-
-## Accessing a Specific Node
-```
-# Get a shell to a container running a node
-kubectl exec -n quorum-network <pod> -i -t -- /bin/sh
-
-    # Then run the following command to access geth running in the container 
-    geth attach ./etc/quorum/qdata/dd/geth.ipc
-
-    # After accessing geth run the following command to inspect the network status
-    raft.cluster
 ```
 
 ## Other useful Commands

@@ -1,4 +1,5 @@
 ${node_name}:  
+  raftId: ${raftId}
   nodekey: ${nodekey}
   enode: ${enode}
   key: |-

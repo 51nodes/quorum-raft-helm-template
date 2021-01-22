@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: quorum-node{{ $k | substr 4 5 }}-deployment
+  name: quorum-node{{ $k | substr 4 6 }}-deployment
   
 spec:
   strategy:
@@ -11,14 +11,14 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: quorum-node{{ $k | substr 4 5 }}-deployment
+      name: quorum-node{{ $k | substr 4 6 }}-deployment
   template:
     metadata:
-      name:  quorum-node{{ $k | substr 4 5 }}-deployment
+      name:  quorum-node{{ $k | substr 4 6 }}-deployment
       labels:
         app: quorum
         tier: backend
-        name: quorum-node{{ $k | substr 4 5 }}-deployment
+        name: quorum-node{{ $k | substr 4 6 }}-deployment
     spec:
       securityContext:
       initContainers:
@@ -41,7 +41,7 @@ spec:
         volumeMounts:
         - name: quorum-persistent-storage
           mountPath:  /etc/quorum/qdata
-          subPath: quorum-node{{ $k | substr 4 5 }}
+          subPath: quorum-node{{ $k | substr 4 6 }}
         - name: genesis-config-persistent-storage
           mountPath: /etc/quorum/genesis/genesis-geth.json
           subPath: genesis-geth.json
@@ -68,7 +68,7 @@ spec:
            chmod 644 $QUORUM_DATA_DIR/keystore/key;
            touch $QUORUM_DATA_DIR/password.txt;
            RPC_APIS=admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum
-           args=\" --gcmode archive --raft  --raftport {{ $scope.Values.geth.raftPort }} --raftdnsenable \";
+           args=\" --gcmode archive --raft --raftport {{ $scope.Values.geth.raftPort }} --raftdnsenable {{- if $v.raftId }} --raftjoinexisting {{ $v.raftId }} {{- end}}\";
            RPC_APIS=\"$RPC_APIS,raft\";
            args=\"$args --allow-insecure-unlock \";
            /usr/local/bin/geth \
@@ -111,17 +111,17 @@ spec:
         - name: QHOME
           value: /etc/quorum/qdata
         - name: THIS_NODE_ID
-          value: quorum-node{{ $k | substr 4 5 }}
+          value: quorum-node{{ $k | substr 4 6 }}
         volumeMounts:
         - name: quorum-persistent-storage
           mountPath: /etc/quorum/qdata
-          subPath: quorum-node{{ $k | substr 4 5 }}
+          subPath: quorum-node{{ $k | substr 4 6 }}
         - name: quorum-persistent-storage
           mountPath: /etc/quorum/qdata/tm
-          subPath: quorum-node{{ $k | substr 4 5 }}-tm
+          subPath: quorum-node{{ $k | substr 4 6 }}-tm
         - name: quorum-persistent-storage
           mountPath: /etc/quorum/qdata/logs
-          subPath: quorum-node{{ $k | substr 4 5 }}-logs
+          subPath: quorum-node{{ $k | substr 4 6 }}-logs
         - name: genesis-config-persistent-storage
           mountPath: /etc/quorum/genesis/genesis-geth.json
           subPath: genesis-geth.json
@@ -153,19 +153,19 @@ spec:
             path: genesis-geth.json
       - name: quorum-key-config-persistent-storage
         configMap:
-          name: quorum-node{{ $k | substr 4 5 }}-account-key-config
+          name: quorum-node{{ $k | substr 4 6 }}-account-key-config
           items:
           - key: key
             path: key
       - name: quorum-nodekey
         configMap:
-          name: quorum-node{{ $k | substr 4 5 }}-nodekey-config
+          name: quorum-node{{ $k | substr 4 6 }}-nodekey-config
           items:
           - key: nodekey
             path: nodekey
       - name: quorum-enode
         configMap:
-          name: quorum-node{{ $k | substr 4 5 }}-enode-config
+          name: quorum-node{{ $k | substr 4 6 }}-enode-config
           items:
             - key: enode
               path: enode
@@ -181,7 +181,7 @@ spec:
       # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
       - name: quorum-persistent-storage
         persistentVolumeClaim:
-          claimName: quorum-node{{ $k | substr 4 5 }}-pvc
+          claimName: quorum-node{{ $k | substr 4 6 }}-pvc
 ---
 {{ end }}
 
