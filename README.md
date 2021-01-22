@@ -3,6 +3,7 @@
 ## Requirements
 - A Running [Kubernetes](https://kubernetes.io/) cluster e. g. [minikube](https://minikube.sigs.k8s.io/docs/start/)
 - [Helm](https://helm.sh/) to deploy the charts to your running cluster
+- [yq](https://github.com/mikefarah/yq) to modify the cluster using the provided [scripts](quorum/scripts/)
 
 ## Configuring the Network
 To set different geth parameters use the `geth` and `getParams` values in the [values.yaml](quorum/values.yaml) file.
@@ -46,8 +47,6 @@ helm uninstall nnodes quorum -n quorum-network
 ## Adding & Removing Nodes
 After deploying the initial cluster use following scripts to add or remove `specific` or `multiple` nodes dynamically. Keep in mind the cluster has to be running and the initial nodes have to be in snyc to use these scripts.
 
-Note: To use these scripts you need to have [yq](https://github.com/mikefarah/yq) installed on your machine.
-
 ### Multiple
 - Upgrade the cluster to a desired amount of nodes - [addNodes.sh](quorum/scripts/addNodes.sh). Please only add a maximum of 3 nodes at a time using this script, if the new nodes are in sync again you can safely reuse this script to add more nodes. Otherwise the raftID of a new node could get corrupted. 
 
@@ -56,7 +55,7 @@ Note: To use these scripts you need to have [yq](https://github.com/mikefarah/yq
 - Add a node by providing bootnode and geth account keys - [addNode.sh](quorum/scripts/addNode.sh)  
 - Remove a node by providing the nodes id - [removeNode.sh](quorum/scripts/removeNode.sh)
 
-## Inspect Nodes
+## Inspect Node $ Cluster State
 ```
 #Access container
 kubectl exec -n quorum-network <pod> -i -t -- /bin/sh
@@ -68,7 +67,7 @@ kubectl exec -n quorum-network <pod> -i -t -- /bin/sh
     raft.cluster
 ```
 
-## Accessing Nodes
+## Accessing Node Endpoints
 The configuration exposes an RPC endpoint for every Quorum node at `<cluster-ip>:<rpcPort>`. To get the endpoint URL you can run the following commands:
 ```
 #Get the cluster-ip
