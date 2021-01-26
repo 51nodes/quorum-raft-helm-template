@@ -1,12 +1,14 @@
 #!/bin/sh
 
 green=`tput setaf 2`
+yellow=`tput setaf 3`
 reset=`tput sgr0`
 
-echo "${green}Enter the amount of overall desired nodes:$reset"
-read NODES_DESIRED
+echo "${green}Enter the amount of nodes to add:$reset"
+read NODES_AMOUNT
 
 NODES_LENGTH=$(yq eval '.nodes | length' ../values.yaml)
+NODES_DESIRED=$((NODES_AMOUNT+NODES_LENGTH))
 
 # get name of pod
 POD=$(kubectl get pod -l app=quorum -n quorum-network -o jsonpath="{.items[0].metadata.name}")
@@ -17,9 +19,25 @@ for((i=$NODES_LENGTH;i<$NODES_DESIRED;i++)) do
   LAST_NODE=${CURRENT_NODES[@]:(-1)}
   LAST_NODE_NUM=$(tr -d -c 0-9 <<< $LAST_NODE)
   NODE_NAME="node$((LAST_NODE_NUM+1))"
+  PREVIOUS_NODE_NAME="node$((LAST_NODE_NUM))"
+
+  #Get previous node sync state
+  kubectl exec -n quorum-network $POD -- geth --exec "raft.cluster" attach ipc:etc/quorum/qdata/dd/geth.ipc >> temp/cluster.yml 
+  QUORUM_NODE_ID="quorum-$PREVIOUS_NODE_NAME"
+  PREVIOUS_NODE_STATE=$(yq eval '.[] | select(.hostname=="'$QUORUM_NODE_ID'") | .nodeActive' temp/cluster.yml)
+  > temp/cluster.yml 
+
+  if [ $PREVIOUS_NODE_STATE == false ]; then
+  echo "${yellow}Waiting for $PREVIOUS_NODE_NAME to be in sync before continuing with adding $NODE_NAME (this might take some time).${reset}"
+    while [ $PREVIOUS_NODE_STATE == false ]; do
+    sleep 5
+    kubectl exec -n quorum-network $POD -- geth --exec "raft.cluster" attach ipc:etc/quorum/qdata/dd/geth.ipc >> temp/cluster.yml 
+    PREVIOUS_NODE_STATE=$(yq eval '.[] | select(.hostname=="'$QUORUM_NODE_ID'") | .nodeActive' temp/cluster.yml)
+    > temp/cluster.yml 
+    done
+  fi
 
   echo "${green}Adding $NODE_NAME to values.yaml$reset"
-
   # generate new enode
   kubectl exec -n quorum-network $POD -- bootnode -genkey $NODE_NAME.key
   ENODE=$(kubectl exec -n quorum-network $POD -- bootnode -nodekey $NODE_NAME.key -writeaddress)

@@ -184,4 +184,3 @@ spec:
           claimName: quorum-node{{ $k | substr 4 6 }}-pvc
 ---
 {{ end }}
-
