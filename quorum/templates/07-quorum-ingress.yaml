@@ -9,7 +9,9 @@ metadata:
 spec:
   rules:
   - http:
+  {{- if or $v.endpoints.ingress.rpc $v.endpoints.ingress.ws }}
       paths:
+      {{- if eq $v.endpoints.ingress.rpc true }}
       - path: /quorum-node{{ $k | substr 4 6 }}-rpc
         pathType: Prefix
         backend:
@@ -17,6 +19,8 @@ spec:
             name: quorum-node{{ $k | substr 4 6 }}
             port:
               number: 8545
+      {{- end }}
+      {{- if eq $v.endpoints.ingress.ws true }}
       - path: /quorum-node{{ $k | substr 4 6 }}-ws
         pathType: Prefix
         backend:
@@ -24,5 +28,7 @@ spec:
             name: quorum-node{{ $k | substr 4 6 }}
             port:
               number: 8546
+      {{- end }}
+  {{- end }}
 ---
 {{ end }}

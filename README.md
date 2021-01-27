@@ -11,8 +11,6 @@ To set different geth parameters use the `geth` and `getParams` values in the [v
 ```
 geth:
   networkId: 10
-  rpc: true
-  ws: true 
   port: 30303
   raftPort: 50401
   verbosity: 3
@@ -29,20 +27,26 @@ geth:
 ## Deploy, Inspect & Remove
 Use the templates in this repository to deploy a quorum network with n nodes. It might take some time for the nodes to be up and in sync. The helm chart is named `nnodes`, changing the charts name will lead to problems with the provided [scripts](quorum/scripts/). 
 
-### Start deploying the templates using the following commands: 
+### (Optional) If using minikube
 ```
 # Bring up minikube in vm-mode
 minikube start --memory='6144' --vm=true
 
 # Enable nginx ingress controller for minikube
 minikube addons enable ingress
+```
 
+### Start deploying the templates
+```
 # Create namespace
 kubectl create ns quorum-network
 
 # Deploy template to namespace
 helm install nnodes quorum -n quorum-network
+```
 
+### Inspect the deployments
+```
 # List running nodes 
 kubectl -n quorum-network get pods
 
@@ -67,17 +71,24 @@ kubectl exec -n quorum-network <pod> -- geth --exec "raft.cluster" attach ipc:et
 - Remove a node by providing the nodes id - [removeNode.sh](quorum/scripts/removeNode.sh)
 
 ## Accessing Node Endpoints
-The configuration uses Ingress to expose an RPC endpoint for every quorum node at `http://<cluster-ip>/quorum-node<n>-rpc` and a WS endpoint on `http://<cluster-ip>/quorum-node<n>-ws`.
+The configuration by default enables Ingress to expose an RPC endpoint for every quorum node at `http://<cluster-ip>/quorum-node<n>-rpc` and a WS endpoint on `http://<cluster-ip>/quorum-node<n>-ws`. You can always decide to disable Ingress endpoints if you do not want to expose the nodes to someone outside the cluster. 
 
-For `node1` this would be: 
 ```
-http://<cluster-ip>/quorum-node1-rpc
-http://<cluster-ip>/quorum-node1-ws
-```
-
-To get the `cluster-ip` you can run the following command:
-```
+# get the cluster ip
 kubectl -n quorum-network cluster-info 
+
+# Access the enabled Ingress via 
+http://<cluster-ip>/quorum-node<n>-rpc
+http://<cluster-ip>/quorum-node<n>-ws
+
+# Disable Ingress by changing the according value in the values.yaml. Remember to upgrade the helm deployment after saving the changes. 
+  node3:
+    endpoints:
+      rpc: true 
+      ws: true
+      ingress: 
+        rpc: false
+        ws: false
 ```
 
 ## Other useful Commands
@@ -94,14 +105,11 @@ kubectl exec -n quorum-network <pod> -i -t -- /bin/sh
     # Inspect raft cluster state
     raft.cluster
 
-# Remove the deployed template
+# Upgrade deployed templates
+helm upgrade nnodes quorum -n quorum-network
+
+# Remove the deployed templates
 helm uninstall nnodes quorum -n quorum-network
-
-# Stop minikube
-minikube stop
-
-# Delete minikube
-minikube delete
 ```
 ---
 Note: the Kubernetes configuration was created with the help of Qubernetes (https://github.com/ConsenSys/qubernetes).

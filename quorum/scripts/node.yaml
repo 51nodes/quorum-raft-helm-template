@@ -1,5 +1,11 @@
 ${node_name}:  
   raftId: ${raftId}
+  endpoints:
+    rpc: true 
+    ws: true
+    ingress: 
+      rpc: true
+      ws: true
   nodekey: ${nodekey}
   enode: ${enode}
   key: |-

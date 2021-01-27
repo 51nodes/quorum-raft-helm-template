@@ -77,13 +77,13 @@ spec:
            {{ $scope.Values.geth.gethParams }}
            --verbosity {{ $scope.Values.geth.verbosity }} \
            --networkid {{ $scope.Values.geth.networkId }} 
-           {{- if eq $scope.Values.geth.rpc true }} \
+           {{- if eq $v.endpoints.rpc true }} \
            --rpc \
            --rpcaddr 0.0.0.0 \
            --rpcport 8545 \
            --rpcapi $RPC_APIS
            {{- end -}} 
-           {{- if eq $scope.Values.geth.ws true }} \
+           {{- if eq $v.endpoints.ws true }} \
            --ws \
            --wsaddr 0.0.0.0 \
            --wsport 8546 \
@@ -92,10 +92,10 @@ spec:
            --port {{ $scope.Values.geth.port }} \
            --password $QUORUM_DATA_DIR/password.txt 2>&1 | tee -a /etc/quorum/qdata/logs/quorum.log;"
         ports:
-          {{- if eq $scope.Values.geth.rpc true }}
+          {{- if eq $v.endpoints.rpc true }}
           - containerPort: 8545
           {{- end }}
-          {{- if eq $scope.Values.geth.ws true }}
+          {{- if eq $v.endpoints.ws true }}
           - containerPort: 8546
           {{- end }}
           - containerPort: {{ $scope.Values.geth.raftPort }}

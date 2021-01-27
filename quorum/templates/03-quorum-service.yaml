@@ -17,13 +17,13 @@ spec:
   type: NodePort
   ports:
     # default 8545
-    {{- if eq $scope.Values.geth.rpc true }}
+    {{- if eq $v.endpoints.rpc true  }}
     - name: rpc-listener
       protocol: TCP
       port: 8545
       targetPort: 8545
     {{- end }}
-    {{- if eq $scope.Values.geth.ws true }}
+    {{- if eq $v.endpoints.ws true }}
     - name: wsport
       protocol: TCP
       port: 8546
