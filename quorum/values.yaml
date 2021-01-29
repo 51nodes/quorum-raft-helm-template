@@ -1,3 +1,6 @@
+quorum: 
+  version: 20.10.0
+  storageSize: 1Gi
 geth:
   networkId: 10
   port: 30303

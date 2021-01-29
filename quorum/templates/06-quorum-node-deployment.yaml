@@ -23,7 +23,7 @@ spec:
       securityContext:
       initContainers:
       - name: quorum-genesis-init-container
-        image: quorumengineering/quorum:20.10.0
+        image: quorumengineering/quorum:{{ $scope.Values.quorum.version }}
         command: [ "sh" ]
         args:
         - "-cx"

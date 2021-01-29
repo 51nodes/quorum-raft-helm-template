@@ -2,12 +2,12 @@
 This repository provides templates for a basic quorum setup using 3 nodes. By using the provided [scripts](quorum/scripts/) you can add and remove nodes to the existing raft cluster. Nodes will be available at `http://<cluster-ip>/quorum-node<n>-rpc`.  Note that this repository is currently designed to be used in development and testing only, do not use this in a production environment!
 
 ## Requirements
-- [minikube](https://minikube.sigs.k8s.io/docs/start/) to create a local kubernetes cluster
+- [minikube](https://minikube.sigs.k8s.io/docs/start/) (optional) to create a local kubernetes cluster
 - [helm](https://helm.sh/) to deploy the charts to your running cluster
 - [yq](https://github.com/mikefarah/yq) version 4 and higher, to modify the cluster using the provided [scripts](quorum/scripts/)
 
 ## Configuring Geth
-To set different geth parameters use the `geth` and `getParams` values in the [values.yaml](quorum/values.yaml) file.
+To set different geth parameters use the `geth` and `getParams` values in the [values.yaml](quorum/values.yaml) file. If you want add initial accounts or in general want to modify the `geth genesis` you can do so in the [01-quorum-genesis.yaml](quorum/templates/01-quorum-genesis.yaml). 
 ```
 geth:
   networkId: 10
@@ -25,7 +25,7 @@ geth:
 ```
 
 ## Deploy, Inspect & Remove
-Use the templates in this repository to deploy a quorum network with n nodes. It might take some time for the nodes to be up and in sync. The helm chart is named `nnodes`, changing the charts name will lead to problems with the provided [scripts](quorum/scripts/). 
+Use the templates in this repository to deploy a quorum network with n nodes. It might take some time for the nodes to be up and in sync. Please do not modify the initial 3 nodes provided in this repository, as they are needed for the raft consensus to function properly. The helm chart is named `nnodes`, changing the charts name will lead to problems with the provided [scripts](quorum/scripts). 
 
 ### (Optional) If using minikube
 ```
@@ -71,7 +71,7 @@ kubectl exec -n quorum-network <pod> -- geth --exec "raft.cluster" attach ipc:et
 - Remove a node by providing the nodes id - [removeNode.sh](quorum/scripts/removeNode.sh)
 
 ## Accessing Node Endpoints
-The configuration by default enables Ingress to expose an RPC endpoint for every quorum node at `http://<cluster-ip>/quorum-node<n>-rpc` and a WS endpoint on `http://<cluster-ip>/quorum-node<n>-ws`. You can always decide to disable Ingress endpoints if you do not want to expose the nodes to someone outside the cluster. 
+The configuration by default enables Ingress to expose an RPC endpoint for every quorum node at `http://<cluster-ip>/quorum-node<n>-rpc` and a WebSocket endpoint on `http://<cluster-ip>/quorum-node<n>-ws`. You can always decide to disable Ingress endpoints if you do not want to expose the nodes to someone outside the cluster. 
 
 ```
 # get the cluster ip
@@ -112,4 +112,4 @@ helm upgrade nnodes quorum -n quorum-network
 helm uninstall nnodes quorum -n quorum-network
 ```
 ---
-Note: the Kubernetes configuration was created with the help of Qubernetes (https://github.com/ConsenSys/qubernetes).
+Note: the template files have been created with the help of Qubernetes (https://github.com/ConsenSys/qubernetes).
