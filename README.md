@@ -1,5 +1,5 @@
 # Helm Templates for n-Nodes Raft Quorum Network
-This repository provides templates for a basic quorum setup using 3 nodes. By using the provided [scripts](quorum/scripts/) you can add and remove nodes to the existing raft cluster. Nodes will be available at `http://<cluster-ip>/quorum-node<n>-rpc`.  Note that this repository is currently designed to be used in development and testing only, do not use this in a production environment!
+This repository provides templates for a basic quorum setup using 3 nodes. By using the provided [scripts](quorum/scripts/) you can add and remove nodes to the existing raft cluster. Nodes will be available at `http://<cluster-ip>/quorum-node<n>-rpc`.  Note that this repository is currently designed to be used in development and testing only, do not use this in a production environment! Please do not reuse the account credentials provided in this repository. 
 
 ## Requirements
 - [minikube](https://minikube.sigs.k8s.io/docs/start/) (optional) to create a local kubernetes cluster
@@ -7,8 +7,11 @@ This repository provides templates for a basic quorum setup using 3 nodes. By us
 - [yq](https://github.com/mikefarah/yq) version 4 and higher, to modify the cluster using the provided [scripts](quorum/scripts/)
 
 ## Configuring Geth
-To set different geth parameters use the `geth` and `getParams` values in the [values.yaml](quorum/values.yaml) file. If you want add initial accounts or in general want to modify the `geth genesis` you can do so in the [01-quorum-genesis.yaml](quorum/templates/01-quorum-genesis.yaml). 
+To set different quorum and geth parameters use the `quorum`, `geth` and `getParams` values in the [values.yaml](quorum/values.yaml) file. If you want add initial accounts or in general want to modify the `geth genesis` you can do so in the [01-quorum-genesis.yaml](quorum/templates/01-quorum-genesis.yaml). 
 ```
+quorum: 
+  version: 20.10.0
+  storageSize: 1Gi
 geth:
   networkId: 10
   port: 30303
