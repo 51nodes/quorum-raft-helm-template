@@ -3,27 +3,27 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: quorum-node{{ $k | substr 4 5}}
+  name: quorum-node{{ $k | substr 4 6}}
   labels:
     app: quorum
     tier: backend
-    name: quorum-node{{ $k | substr 4 5}}
+    name: quorum-node{{ $k | substr 4 6}}
 spec:
   selector:
     app: quorum
     tier: backend
-    name: quorum-node{{ $k | substr 4 5}}-deployment
+    name: quorum-node{{ $k | substr 4 6}}-deployment
   # NodePort | ClusterIP | Loadbalancer
   type: NodePort
   ports:
     # default 8545
-    {{- if eq $scope.Values.geth.rpc true }}
+    {{- if eq $v.endpoints.rpc true  }}
     - name: rpc-listener
       protocol: TCP
       port: 8545
       targetPort: 8545
     {{- end }}
-    {{- if eq $scope.Values.geth.ws true }}
+    {{- if eq $v.endpoints.ws true }}
     - name: wsport
       protocol: TCP
       port: 8546

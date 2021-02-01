@@ -19,7 +19,7 @@ data:
             {{- else -}}
               ,
             {{- end -}}
-          "enode://{{ $v.enode }}@quorum-node{{ $k | substr 4 5 }}:{{ $scope.Values.geth.port }}?discport=0&raftport={{ $scope.Values.geth.raftPort }}"
+          "enode://{{ $v.enode }}@quorum-node{{ $k | substr 4 6 }}:{{ $scope.Values.geth.port }}?discport=0&raftport={{ $scope.Values.geth.raftPort }}"
         {{- end -}}
       ]
 ---

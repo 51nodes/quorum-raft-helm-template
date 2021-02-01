@@ -6,11 +6,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: quorum-node{{ $k | substr 4 5 }}-nodekey-config
+  name: quorum-node{{ $k | substr 4 6 }}-nodekey-config
   
   labels:
     app: quorum
-    name: quorum-node{{ $k | substr 4 5 }}-nodekey-config
+    name: quorum-node{{ $k | substr 4 6 }}-nodekey-config
 data:
   nodekey: |
     {{ $v.nodekey }}
@@ -23,11 +23,11 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: quorum-node{{ $k | substr 4 5 }}-enode-config
+  name: quorum-node{{ $k | substr 4 6 }}-enode-config
   
   labels:
     app: quorum
-    name: quorum-node{{ $k | substr 4 5 }}-enode-config
+    name: quorum-node{{ $k | substr 4 6 }}-enode-config
 data:
   enode: |
     {{ $v.enode }}
@@ -37,11 +37,11 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: quorum-node{{ $k | substr 4 5 }}-account-key-config
+  name: quorum-node{{ $k | substr 4 6 }}-account-key-config
   
   labels:
     app: quorum
-    name: quorum-node{{ $k | substr 4 5 }}-account-key-config
+    name: quorum-node{{ $k | substr 4 6 }}-account-key-config
 data:
   key: |-
     {{ $v.key }}

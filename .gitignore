@@ -1,3 +1,5 @@
 .DS_Store
 quorum/.DS_Store
 quorum/templates/.DS_Store
+quorum/scripts/temp/*
+!quorum/scripts/temp/.gitkeep

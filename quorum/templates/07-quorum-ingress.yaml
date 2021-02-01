@@ -1,0 +1,34 @@
+{{ $scope := . }}
+{{ range $k, $v := .Values.nodes }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quorum-node{{ $k | substr 4 6 }}-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+  {{- if or $v.endpoints.ingress.rpc $v.endpoints.ingress.ws }}
+      paths:
+      {{- if eq $v.endpoints.ingress.rpc true }}
+      - path: /quorum-node{{ $k | substr 4 6 }}-rpc
+        pathType: Prefix
+        backend:
+          service:
+            name: quorum-node{{ $k | substr 4 6 }}
+            port:
+              number: 8545
+      {{- end }}
+      {{- if eq $v.endpoints.ingress.ws true }}
+      - path: /quorum-node{{ $k | substr 4 6 }}-ws
+        pathType: Prefix
+        backend:
+          service:
+            name: quorum-node{{ $k | substr 4 6 }}
+            port:
+              number: 8546
+      {{- end }}
+  {{- end }}
+---
+{{ end }}

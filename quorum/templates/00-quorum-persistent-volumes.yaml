@@ -1,15 +1,15 @@
-
+{{ $scope := . }}
 {{- range $k, $v := .Values.nodes -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: quorum-node{{ $k | substr 4 5}}-pvc
+  name: quorum-node{{ $k | substr 4 6}}-pvc
   annotations:
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: {{ $scope.Values.quorum.storageSize }}
 ---
-{{- end -}}
+{{ end }}
