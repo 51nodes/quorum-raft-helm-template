@@ -1,0 +1,61 @@
+{{ $scope := . }}
+{{- if eq $scope.Values.epirus.enabled true }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: epirus-chain-explorer-deployment
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      name: epirus-chain-explorer-deployment
+  template:
+    metadata:
+      name:  epirus-chain-explorer-deployment
+      labels:
+        app: epirus
+        tier: backend
+        name: epirus-chain-explorer-deployment
+    spec:
+      securityContext:
+      containers:
+      - name: epirus-api
+        image: web3labs/epirus-free-api:latest
+        ports:
+          - containerPort: 8090
+        env:
+          - name: NODE_ENDPOINT
+            value: http://{{$scope.Values.epirus.node}}.quorum-network.svc.cluster.local:8545
+          - name: MONGO_CLIENT_URI
+            value: mongodb://localhost:27017
+          - name: REINDEX_ENDPOINT
+            value: http://ingestion/reindex/
+          - name: MONGO_DB_NAME
+            value: epirus
+      - name: mongodb
+        image: mongo:latest
+        ports:
+          - name: http
+            containerPort: 27017
+            protocol: TCP
+        command: ["mongod", "--logpath=/dev/null", "--bind_ip_all"]
+      - name: epirus-web
+        image: web3labs/epirus-free-web:latest
+        ports:
+          - containerPort: 3000
+        env:
+          - name: API_URL
+            value: /api
+      - name: epirus-ingestion
+        image: web3labs/epirus-free-ingestion:latest
+        env:
+          - name: NODE_ENDPOINT
+            value: http://{{$scope.Values.epirus.node}}.quorum-network.svc.cluster.local:8545
+          - name: MONGO_CLIENT_URI
+            value: mongodb://localhost:27017
+          - name: MONGO_DB_NAME
+            value: epirus  
+  {{- end }}
+---

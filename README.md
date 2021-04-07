@@ -7,8 +7,8 @@ This repository provides templates for a basic quorum setup using 3 nodes. By us
 - [yq](https://github.com/mikefarah/yq) version 4 and higher, to modify the cluster using the provided [scripts](quorum/scripts/)
 
 ## Configuring Geth
-To set different quorum and geth parameters use the `quorum`, `geth` and `getParams` values in the [values.yaml](quorum/values.yaml) file. If you want add initial accounts or in general want to modify the `geth genesis` you can do so in the [01-quorum-genesis.yaml](quorum/templates/01-quorum-genesis.yaml). 
-```
+To set different quorum and geth parameters use the `quorum`, `geth` and `getParams` values in the [values.yaml](quorum/values.yaml) file. If you want add initial accounts or in general want to modify the `geth genesis` you can do so in the [01-quorum-genesis.yaml](quorum/templates/01-quorum-genesis.yaml).
+```bash
 quorum: 
   version: 20.10.0
   storageSize: 1Gi
@@ -31,7 +31,7 @@ geth:
 Use the templates in this repository to deploy a quorum network with n nodes. It might take some time for the nodes to be up and in sync. Please do not modify the initial 3 nodes provided in this repository, as they are needed for the raft consensus to function properly. The helm chart is named `nnodes`, changing the charts name will lead to problems with the provided [scripts](quorum/scripts). 
 
 ### (Optional) If using minikube
-```
+```bash
 # Bring up minikube in vm-mode
 minikube start --memory='6144' --vm=true
 
@@ -40,7 +40,7 @@ minikube addons enable ingress
 ```
 
 ### Start deploying the templates
-```
+```bash
 # Create namespace
 kubectl create ns quorum-network
 
@@ -49,7 +49,7 @@ helm install nnodes quorum -n quorum-network
 ```
 
 ### Inspect the deployments
-```
+```bash
 # List running nodes 
 kubectl -n quorum-network get pods
 
@@ -61,7 +61,7 @@ kubectl exec -n quorum-network <pod> -- geth --exec "raft.cluster" attach ipc:et
 After deploying the initial cluster run following scripts from the [quorum/scripts/](quorum/scripts/) directory to add or remove `specific` or `multiple` nodes dynamically. The scripts will wait for user prompts once started and edit the [values.yaml](quorum/values.yaml) file accordingly, which then will be used in the helm templates for deploying a quorum raft cluster with multiple nodes. Keep in mind the inital cluster with 3 nodes has to be running and the nodes have to be in snyc to use these scripts. Nodes which are not initial (node4 and higher) will have an additional value `raftId` which is needed to join them to the existing cluster. 
 
 You can see if a node is in sync by inspecting the `nodeActive` value for the according node in the raft cluster state. To get the raft cluster state run:
-```
+```bash
 kubectl exec -n quorum-network <pod> -- geth --exec "raft.cluster" attach ipc:etc/quorum/qdata/dd/geth.ipc
 ```
 
@@ -76,8 +76,8 @@ kubectl exec -n quorum-network <pod> -- geth --exec "raft.cluster" attach ipc:et
 ## Accessing Node Endpoints
 The configuration by default enables Ingress to expose an RPC endpoint for every quorum node at `http://<cluster-ip>/quorum-node<n>-rpc` and a WebSocket endpoint on `http://<cluster-ip>/quorum-node<n>-ws`. You can always decide to disable Ingress endpoints if you do not want to expose the nodes to someone outside the cluster. 
 
-```
-# get the cluster ip
+```bash
+# Get the cluster ip
 kubectl -n quorum-network cluster-info 
 
 # Access the enabled Ingress via 
@@ -94,8 +94,19 @@ http://<cluster-ip>/quorum-node<n>-ws
         ws: false
 ```
 
-## Other useful Commands
+## Epirus Chain Explorer
+In the [values.yaml](quorum/values.yaml) file you can choose to enable the Epirus Free Chain Explorer for your Cluster. Set the ingress option to `true` to make it accessible locally. With the node option you can controll on which specific quorum node the epirus explorer will listen. 
+
+```bash
+# Get the cluster ip
+kubectl -n quorum-network cluster-info 
+
+# Access the explorer at
+http://<cluster-ip>/dashboard
 ```
+
+## Other useful Commands
+```bash
 # Get logs of running nodes 
 kubectl -n quorum-network logs <pod>
 
