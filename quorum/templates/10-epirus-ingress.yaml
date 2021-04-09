@@ -17,7 +17,7 @@ spec:
           service:
             name: epirus-chain-explorer-web
             port:
-              number: {{ $scope.Values.epirus.port }}
+              number: 3000
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

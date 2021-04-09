@@ -17,7 +17,7 @@ spec:
   ports:
     - name: epirus-web
       protocol: TCP
-      port: {{ $scope.Values.epirus.port }}
+      port: 3000
       targetPort: 3000
 --- 
 apiVersion: v1
