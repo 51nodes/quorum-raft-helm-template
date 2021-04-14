@@ -7,6 +7,10 @@ geth:
   raftPort: 50401
   verbosity: 3
   gethParams: --permissioned \ --nodiscover \ --nat=none \ --unlock 0 \ --emitcheckpoints \ --rpccorsdomain '*' \ --rpcvhosts '*' \
+epirus:
+  enabled: true
+  ingress: true
+  node: quorum-node1
 nodes:
   node1:
     endpoints:

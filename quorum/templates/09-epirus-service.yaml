@@ -1,0 +1,43 @@
+{{ $scope := . }}
+{{- if eq $scope.Values.epirus.enabled true }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: epirus-chain-explorer-web
+  labels:
+    app: epirus
+    tier: backend
+    name: epirus-chain-explorer-web
+spec:
+  selector:
+    app: epirus
+    tier: backend
+    name: epirus-chain-explorer-deployment
+  type: NodePort
+  ports:
+    - name: epirus-web
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: epirus-chain-explorer-api
+  labels:
+    app: epirus
+    tier: backend
+    name: epirus-chain-explorer-api
+spec:
+  selector:
+    app: epirus
+    tier: backend
+    name: epirus-chain-explorer-deployment
+  type: NodePort
+  ports:
+    - name: epirus-api
+      protocol: TCP
+      port: 8090
+      targetPort: 8090
+  {{- end }}
+---
