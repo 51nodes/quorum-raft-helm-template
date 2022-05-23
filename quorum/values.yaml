@@ -1,12 +1,12 @@
 quorum: 
-  version: 20.10.0
+  version: 22.4
   storageSize: 1Gi
 geth:
   networkId: 10
   port: 30303
   raftPort: 50401
   verbosity: 3
-  gethParams: --permissioned \ --nodiscover \ --nat=none \ --unlock 0 \ --emitcheckpoints \ --rpccorsdomain '*' \ --rpcvhosts '*' \
+  gethParams: --nodiscover \ --nat=none \ --unlock 0 \ --emitcheckpoints \ --http.corsdomain '*' \ --http.vhosts '*' \
 epirus:
   enabled: true
   ingress: true

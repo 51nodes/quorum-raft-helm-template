@@ -47,7 +47,7 @@ spec:
           subPath: genesis-geth.json
       containers:
       - name: quorum
-        image: quorumengineering/quorum:20.10.0
+        image: quorumengineering/quorum:22.4
         readinessProbe:
           exec:
             command:
@@ -67,7 +67,7 @@ spec:
            cat /etc/quorum/genesis/genesis-geth.json;
            chmod 644 $QUORUM_DATA_DIR/keystore/key;
            touch $QUORUM_DATA_DIR/password.txt;
-           RPC_APIS=admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum
+           RPC_APIS=admin,eth,debug,miner,net,txpool,personal,web3
            args=\" --gcmode archive --raft --raftport {{ $scope.Values.geth.raftPort }} --raftdnsenable {{- if $v.raftId }} --raftjoinexisting {{ $v.raftId }} {{- end}}\";
            RPC_APIS=\"$RPC_APIS,raft\";
            args=\"$args --allow-insecure-unlock \";
@@ -78,16 +78,16 @@ spec:
            --verbosity {{ $scope.Values.geth.verbosity }} \
            --networkid {{ $scope.Values.geth.networkId }} 
            {{- if eq $v.endpoints.rpc true }} \
-           --rpc \
-           --rpcaddr 0.0.0.0 \
-           --rpcport 8545 \
-           --rpcapi $RPC_APIS
+           --http \
+           --http.addr 0.0.0.0 \
+           --http.port 8545 \
+           --http.api $RPC_APIS
            {{- end -}} 
            {{- if eq $v.endpoints.ws true }} \
            --ws \
-           --wsaddr 0.0.0.0 \
-           --wsport 8546 \
-           --wsapi $RPC_APIS \
+           --ws.addr 0.0.0.0 \
+           --ws.port 8546 \
+           --ws.api $RPC_APIS \
            {{- end }} 
            --port {{ $scope.Values.geth.port }} \
            --password $QUORUM_DATA_DIR/password.txt 2>&1 | tee -a /etc/quorum/qdata/logs/quorum.log;"

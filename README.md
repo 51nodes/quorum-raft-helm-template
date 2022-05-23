@@ -5,12 +5,13 @@ This repository provides templates for a basic quorum setup using 3 nodes. By us
 - [minikube](https://minikube.sigs.k8s.io/docs/start/) (optional) to create a local kubernetes cluster
 - [helm](https://helm.sh/) to deploy the charts to your running cluster
 - [yq](https://github.com/mikefarah/yq) version 4 and higher, to modify the cluster using the provided [scripts](quorum/scripts/)
+- [k8s 1.23](https://kubernetes.io/releases/#release-v1-23)
 
 ## Configuring Geth
 To set different quorum and geth parameters use the `quorum`, `geth` and `getParams` values in the [values.yaml](quorum/values.yaml) file. If you want add initial accounts or in general want to modify the `geth genesis` you can do so in the [01-quorum-genesis.yaml](quorum/templates/01-quorum-genesis.yaml).
 ```bash
 quorum: 
-  version: 20.10.0
+  version: 22.4
   storageSize: 1Gi
 geth:
   networkId: 10
@@ -23,8 +24,8 @@ geth:
     --nat=none \
     --unlock 0 \
     --emitcheckpoints \
-    --rpccorsdomain '*' \
-    --rpcvhosts '*' \
+    --http.corsdomain '*' \
+    --http.vhosts '*' \
 ```
 
 ## Deploy, Inspect & Remove
@@ -32,11 +33,14 @@ Use the templates in this repository to deploy a quorum network with n nodes. It
 
 ### (Optional) If using minikube
 ```bash
-# Bring up minikube in vm-mode
+# Bring up minikube in vm-mode (Note that with ARM Processors the vm=true flag will not be working. minikube 1.26-beta includes a not yet fully functional fix using qemu https://github.com/kubernetes/minikube/issues/11885)
 minikube start --memory='6144' --vm=true
 
 # Enable nginx ingress controller for minikube
 minikube addons enable ingress
+
+# Open Tunnel 
+minikube tunnel
 ```
 
 ### Start deploying the templates
@@ -58,7 +62,7 @@ kubectl exec -n quorum-network <pod> -- geth --exec "raft.cluster" attach ipc:et
 ```
 
 ## Adding & Removing Nodes
-After deploying the initial cluster run following scripts from the [quorum/scripts/](quorum/scripts/) directory to add or remove `specific` or `multiple` nodes dynamically. The scripts will wait for user prompts once started and edit the [values.yaml](quorum/values.yaml) file accordingly, which then will be used in the helm templates for deploying a quorum raft cluster with multiple nodes. Keep in mind the inital cluster with 3 nodes has to be running and the nodes have to be in snyc to use these scripts. Nodes which are not initial (node4 and higher) will have an additional value `raftId` which is needed to join them to the existing cluster. 
+After deploying the initial cluster run the following scripts from the [quorum/scripts/](quorum/scripts/) directory to add or remove `single` or `multiple` nodes dynamically. The scripts will wait for user prompts and edit the [values.yaml](quorum/values.yaml) file accordingly. The `values.yaml`-file will then be used in the helm templates for deploying a quorum raft cluster with multiple nodes. Keep in mind the inital cluster with 3 nodes has to be running and the nodes have to be in snyc to use these scripts. Nodes which are not initial (node4 and higher) will have an additional value `raftId` which is needed to join them to the existing cluster. 
 
 You can see if a node is in sync by inspecting the `nodeActive` value for the according node in the raft cluster state. To get the raft cluster state run:
 ```bash
